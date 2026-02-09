@@ -88,17 +88,21 @@ export const AddDeviceModalContent = () => {
 
   useGlobalLoading({ isLoading: isPairing })
 
+  // Create invite when access level changes
   useEffect(() => {
     if (selectedAccessLevel === 'read-only') {
       createReadOnlyInvite()
     } else {
       createInvite()
     }
+  }, [selectedAccessLevel])
 
+  // Clean up invite only on unmount
+  useEffect(() => {
     return () => {
       deleteInvite()
     }
-  }, [selectedAccessLevel])
+  }, [])
 
   useEffect(() => {
     if (data?.publicKey) {
