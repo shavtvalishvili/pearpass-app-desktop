@@ -56,15 +56,20 @@ export const CardLoadVault = () => {
 
   const handleLoadVault = async (code) => {
     try {
-      const vaultId = await pairActiveVault(code)
+      const result = await pairActiveVault(code)
 
-      if (!vaultId) {
+      if (!result?.vaultId) {
         throw new Error('Vault ID is empty')
       }
 
-      await refetchVault(vaultId)
+      await refetchVault(result.vaultId)
 
-      await addDevice(os.hostname() + ' ' + os.platform() + ' ' + os.release())
+      // Only add device for edit access (read-only doesn't have write access)
+      if (result.accessLevel !== 'read-only') {
+        await addDevice(
+          os.hostname() + ' ' + os.platform() + ' ' + os.release()
+        )
+      }
 
       navigate('vault', {
         recordType: 'all'
