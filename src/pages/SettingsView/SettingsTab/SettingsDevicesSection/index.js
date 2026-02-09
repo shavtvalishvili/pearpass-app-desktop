@@ -36,6 +36,9 @@ export const SettingsDevicesSection = () => {
               itemDateText=${i18n._('Added on') +
               ' ' +
               formatDate(device.createdAt, 'dd-mm-yyyy', '/')}
+              badge=${device.accessLevel === 'read-only'
+                ? i18n._('View only')
+                : null}
             />`
         )}
         <div style=${{ display: 'flex', justifyContent: 'center' }}>

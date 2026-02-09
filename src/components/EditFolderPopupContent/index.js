@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 
 import { useLingui } from '@lingui/react'
 import { html } from 'htm/react'
-import { useFolders } from 'pearpass-lib-vault'
+import { useFolders, useVaultAccess } from 'pearpass-lib-vault'
 
 import { MenuItem, MenuList } from './styles'
 import { ConfirmationModalContent } from '../../containers/Modal/ConfirmationModalContent'
@@ -21,41 +21,47 @@ export const EditFolderPopupContent = ({ name }) => {
   const { i18n } = useLingui()
   const { deleteFolder } = useFolders()
   const { setModal, closeModal } = useModal()
+  const { canEdit } = useVaultAccess()
 
   const menuItems = useMemo(
-    () => [
-      {
-        name: i18n._('Delete'),
-        type: 'delete',
-        icon: DeleteIcon,
-        onClick: () =>
-          setModal(
-            html`<${ConfirmationModalContent}
-              primaryAction=${() => {
-                deleteFolder(name)
-                closeModal()
-              }}
-              secondaryAction=${closeModal}
-              title=${i18n._('Are you sure you want to delete this folder?')}
-              text=${i18n._(
-                'This action will permanently delete the folder and all items contained within it. Are you sure you want to proceed?'
-              )}
-            />`
-          )
-      },
-      {
-        name: i18n._('Rename'),
-        type: 'rename',
-        icon: FolderIcon,
-        onClick: () =>
-          setModal(
-            html`<${CreateFolderModalContent}
-              initialValues=${{ title: name }}
-            />`
-          )
-      }
-    ],
-    [closeModal, deleteFolder, i18n, name, setModal]
+    () =>
+      canEdit
+        ? [
+            {
+              name: i18n._('Delete'),
+              type: 'delete',
+              icon: DeleteIcon,
+              onClick: () =>
+                setModal(
+                  html`<${ConfirmationModalContent}
+                    primaryAction=${() => {
+                      deleteFolder(name)
+                      closeModal()
+                    }}
+                    secondaryAction=${closeModal}
+                    title=${i18n._(
+                      'Are you sure you want to delete this folder?'
+                    )}
+                    text=${i18n._(
+                      'This action will permanently delete the folder and all items contained within it. Are you sure you want to proceed?'
+                    )}
+                  />`
+                )
+            },
+            {
+              name: i18n._('Rename'),
+              type: 'rename',
+              icon: FolderIcon,
+              onClick: () =>
+                setModal(
+                  html`<${CreateFolderModalContent}
+                    initialValues=${{ title: name }}
+                  />`
+                )
+            }
+          ]
+        : [],
+    [canEdit, closeModal, deleteFolder, i18n, name, setModal]
   )
 
   const handleMenuItemClick = (e, item) => {

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { useLingui } from '@lingui/react'
 import { html } from 'htm/react'
-import { useRecords } from 'pearpass-lib-vault'
+import { useRecords, useVaultAccess } from 'pearpass-lib-vault'
 
 import {
   ActionsSection,
@@ -62,6 +62,7 @@ export const RecordListView = ({
   const { i18n } = useLingui()
   const { currentPage, navigate, data: routeData } = useRouter()
   const { setModal, closeModal } = useModal()
+  const { canEdit } = useVaultAccess()
 
   const { deleteRecords } = useRecords()
 
@@ -197,7 +198,8 @@ export const RecordListView = ({
               >
                 ${i18n._('Cancel')}
               <//>`
-            : html`<${ButtonFilter}
+            : canEdit &&
+              html`<${ButtonFilter}
                 onClick=${() => setIsMultiSelect(true)}
                 startIcon=${MultiSelectionIcon}
               >

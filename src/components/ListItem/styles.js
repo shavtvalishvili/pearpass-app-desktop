@@ -29,12 +29,31 @@ export const ListItemDescription = styled.div`
   align-items: flex-start;
   gap: 4px;
 `
+export const ListItemNameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
 export const ListItemName = styled.span`
   color: ${({ theme }) => theme.colors.white.mode1};
   font-family: 'Inter';
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
+`
+
+export const ListItemBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.colors.grey400.mode1};
+  color: ${({ theme }) => theme.colors.grey200.mode1};
+  font-family: 'Inter';
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
 `
 export const ListItemDate = styled.p`
   color: ${({ theme }) => theme.colors.white.mode1};

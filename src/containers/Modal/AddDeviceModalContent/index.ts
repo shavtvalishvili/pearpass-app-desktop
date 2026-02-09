@@ -15,6 +15,12 @@ import {
 import { InputFieldWrapper } from './styles'
 import { PasteIconWrapper } from './styles'
 import {
+  AccessLevelContent,
+  AccessLevelDescription,
+  AccessLevelOption,
+  AccessLevelRadio,
+  AccessLevelSelector,
+  AccessLevelTitle,
   BackgroundSection,
   Content,
   CopyText,
@@ -62,7 +68,14 @@ export const AddDeviceModalContent = () => {
     refetch: refetchVault,
     addDevice
   } = useVault()
-  const { createInvite, deleteInvite, data } = useInvite()
+  const {
+    createInvite,
+    createReadOnlyInvite,
+    deleteInvite,
+    data,
+    selectedAccessLevel,
+    setSelectedAccessLevel
+  } = useInvite()
   const [inviteCode, setInviteCodeId] = useState('')
   const {
     pairActiveVault,
@@ -76,12 +89,16 @@ export const AddDeviceModalContent = () => {
   useGlobalLoading({ isLoading: isPairing })
 
   useEffect(() => {
-    createInvite()
+    if (selectedAccessLevel === 'read-only') {
+      createReadOnlyInvite()
+    } else {
+      createInvite()
+    }
 
     return () => {
       deleteInvite()
     }
-  }, [])
+  }, [selectedAccessLevel])
 
   useEffect(() => {
     if (data?.publicKey) {
@@ -126,15 +143,18 @@ export const AddDeviceModalContent = () => {
 
   const handleLoadVault = async (code: string) => {
     try {
-      const vaultId = await pairActiveVault(code)
+      const result = await pairActiveVault(code)
 
-      if (!vaultId) {
+      if (!result?.vaultId) {
         throw new Error('Vault ID is empty')
       }
 
-      await refetchVault(vaultId)
+      await refetchVault(result.vaultId)
 
-      await addDevice(os.hostname() + ' ' + os.platform() + ' ' + os.release())
+      // Only add device for edit access (read-only doesn't have write access)
+      if (result.accessLevel !== 'read-only') {
+        await addDevice(os.hostname() + ' ' + os.platform() + ' ' + os.release())
+      }
 
       navigate('vault', {
         recordType: 'all'
@@ -220,6 +240,39 @@ export const AddDeviceModalContent = () => {
         <//>
         ${scanQRStep
       ? html`
+              <${AccessLevelSelector}>
+                <${AccessLevelOption}
+                  $selected=${selectedAccessLevel === 'edit'}
+                  onClick=${() => setSelectedAccessLevel('edit')}
+                >
+                  <${AccessLevelRadio}
+                    type="radio"
+                    name="accessLevel"
+                    checked=${selectedAccessLevel === 'edit'}
+                    onChange=${() => setSelectedAccessLevel('edit')}
+                  />
+                  <${AccessLevelContent}>
+                    <${AccessLevelTitle}>${t('Full access')}<//>
+                    <${AccessLevelDescription}>${t('Can view, add, edit, and delete items')}<//>
+                  <//>
+                <//>
+                <${AccessLevelOption}
+                  $selected=${selectedAccessLevel === 'read-only'}
+                  onClick=${() => setSelectedAccessLevel('read-only')}
+                >
+                  <${AccessLevelRadio}
+                    type="radio"
+                    name="accessLevel"
+                    checked=${selectedAccessLevel === 'read-only'}
+                    onChange=${() => setSelectedAccessLevel('read-only')}
+                  />
+                  <${AccessLevelContent}>
+                    <${AccessLevelTitle}>${t('View only')}<//>
+                    <${AccessLevelDescription}>${t('Can only view items, cannot make changes')}<//>
+                  <//>
+                <//>
+              <//>
+
               <${QRCodeSection}>
                 <${QRCodeText}> ${t('Scan this QR code while in the PearPass App')} <//>
 

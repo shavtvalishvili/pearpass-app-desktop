@@ -1,5 +1,5 @@
 import { html } from 'htm/react'
-import { RECORD_TYPES } from 'pearpass-lib-vault'
+import { RECORD_TYPES, useVaultAccess } from 'pearpass-lib-vault'
 
 import {
   CollectionsContainer,
@@ -27,6 +27,7 @@ export const EmptyCollectionView = ({
   const { data } = useRouter()
   const { t } = useTranslation()
   const { handleCreateOrEditRecord } = useCreateOrEditRecord()
+  const { canCreate } = useVaultAccess()
 
   const createCollectionOptions = [
     { text: t('Create a login'), type: RECORD_TYPES.LOGIN },
@@ -55,12 +56,14 @@ export const EmptyCollectionView = ({
           </span>
 
           ${!isSearchActive &&
+          canCreate &&
           html`<p>
             ${t('Create a new element or pass to another collection')}
           </p>`}
         <//>
 
         ${!isSearchActive &&
+        canCreate &&
         createCollectionOptions
           .filter(
             (option) =>

@@ -193,3 +193,76 @@ export const LoadVaultNotice = styled.div`
   font-weight: 400;
   line-height: normal;
 `
+
+export const AccessLevelSelector = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+`
+
+export const AccessLevelOption = styled.label<{ $selected?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  background-color: ${({ theme, $selected }) =>
+    $selected ? theme.colors.grey400.mode1 : 'transparent'};
+  border: 1px solid
+    ${({ theme, $selected }) =>
+      $selected ? theme.colors.primary400.mode1 : theme.colors.grey100.mode1};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.grey400.mode1};
+  }
+`
+
+export const AccessLevelRadio = styled.input`
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid ${({ theme }) => theme.colors.grey200.mode1};
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+
+  &:checked {
+    border-color: ${({ theme }) => theme.colors.primary400.mode1};
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: ${({ theme }) => theme.colors.primary400.mode1};
+    }
+  }
+`
+
+export const AccessLevelContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`
+
+export const AccessLevelTitle = styled.div`
+  color: ${({ theme }) => theme.colors.white.mode1};
+  font-family: 'Inter';
+  font-size: 14px;
+  font-weight: 500;
+`
+
+export const AccessLevelDescription = styled.div`
+  color: ${({ theme }) => theme.colors.grey200.mode1};
+  font-family: 'Inter';
+  font-size: 12px;
+  font-weight: 400;
+`

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { html } from 'htm/react'
-import { useRecords } from 'pearpass-lib-vault'
+import { useRecords, useVaultAccess } from 'pearpass-lib-vault'
 
 import { ContentWrapper, SearchContainer, Wrapper } from './styles'
 import { ButtonPlusCreateNew } from '../../components/ButtonPlusCreateNew'
@@ -37,6 +37,7 @@ export const MainView = () => {
   const [selectedRecords, setSelectedRecords] = useState([])
   const { popupItems } = useRecordMenuItems()
   const { data: routerData } = useRouter()
+  const { canCreate } = useVaultAccess()
 
   const [searchValue, setSearchValue] = useState('')
   const [sortType, setSortType] = useState('recent')
@@ -87,7 +88,8 @@ export const MainView = () => {
             testId="main-search-input"
           />
 
-          <${PopupMenu}
+          ${canCreate &&
+          html`<${PopupMenu}
             side="right"
             align="right"
             isOpen=${isOpen}
@@ -103,7 +105,7 @@ export const MainView = () => {
               testId="main-plus-button"
               isOpen=${isOpen}
             />
-          <//>
+          <//>`}
         <//>
 
         ${!isLoading &&

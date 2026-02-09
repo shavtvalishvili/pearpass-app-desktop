@@ -4,11 +4,13 @@ import { colors } from 'pearpass-lib-ui-theme-provider'
 import {
   SelectedListItemIconContainer,
   ListItemActions,
+  ListItemBadge,
   ListItemContainer,
   ListItemDate,
   ListItemDescription,
   ListItemInfo,
-  ListItemName
+  ListItemName,
+  ListItemNameRow
 } from './styles'
 import {
   BrushIcon,
@@ -26,7 +28,8 @@ export const ListItem = ({
   onEditClick,
   onDeleteClick,
   isSelected,
-  testId
+  testId,
+  badge
 }) => html`
   <${ListItemContainer}
     isSelected=${isSelected}
@@ -41,7 +44,10 @@ export const ListItem = ({
         : html`<${LockCircleIcon} size="24" />`}
 
       <${ListItemDescription}>
-        <${ListItemName}>${itemName}<//>
+        <${ListItemNameRow}>
+          <${ListItemName}>${itemName}<//>
+          ${badge && html`<${ListItemBadge}>${badge}<//>`}
+        <//>
         ${itemDateText && html`<${ListItemDate}> ${itemDateText}<//>`}
       <//>
     <//>

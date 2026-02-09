@@ -4,7 +4,7 @@ import { useLingui } from '@lingui/react'
 import { html } from 'htm/react'
 import { generateAvatarInitials } from 'pear-apps-utils-avatar-initials'
 import { colors } from 'pearpass-lib-ui-theme-provider'
-import { useRecordById, useRecords } from 'pearpass-lib-vault'
+import { useRecordById, useRecords, useVaultAccess } from 'pearpass-lib-vault'
 
 import { RecordDetailsContent } from './RecordDetailsContent'
 import {
@@ -47,6 +47,7 @@ export const RecordDetails = () => {
 
   const { handleCreateOrEditRecord } = useCreateOrEditRecord()
   const { updateFavoriteState } = useRecords()
+  const { canEdit } = useVaultAccess()
 
   const DATA_ID_PREFIX_BY_TYPE = {
     note: 'note',
@@ -123,7 +124,8 @@ export const RecordDetails = () => {
         <//>
 
         <${HeaderRight}>
-          <${FavoriteButtonWrapper}
+          ${canEdit &&
+          html`<${FavoriteButtonWrapper}
             data-testid="details-button-favorite"
             favorite=${record?.isFavorite}
             onClick=${() =>
@@ -134,16 +136,16 @@ export const RecordDetails = () => {
               fill=${record?.isFavorite}
               color=${colors.primary400.mode1}
             />
-          <//>
-
-          <${ButtonLittle}
+          <//>`}
+          ${canEdit &&
+          html`<${ButtonLittle}
             testId="details-button-edit"
             dataId=${dataIdPrefix ? `${dataIdPrefix}-edit-button` : undefined}
             startIcon=${BrushIcon}
             onClick=${handleEdit}
           >
             ${i18n._('Edit')}
-          <//>
+          <//>`}
 
           <${RecordActions}>
             <${PopupMenu}

@@ -1,6 +1,6 @@
 import { useLingui } from '@lingui/react'
 import { html } from 'htm/react'
-import { useRecords } from 'pearpass-lib-vault'
+import { useRecords, useVaultAccess } from 'pearpass-lib-vault'
 
 import { ConfirmationModalContent } from '../containers/Modal/ConfirmationModalContent'
 import { MoveFolderModalContent } from '../containers/Modal/MoveFolderModalContent'
@@ -32,6 +32,7 @@ export const useRecordActionItems = ({
   const { i18n } = useLingui()
   const { setModal, closeModal } = useModal()
   const { data: routerData, navigate, currentPage } = useRouter()
+  const { isReadOnly } = useVaultAccess()
 
   const { deleteRecords, updateFavoriteState } = useRecords()
 
@@ -95,8 +96,13 @@ export const useRecordActionItems = ({
     { name: i18n._('Delete element'), type: 'delete', click: handleDelete }
   ]
 
-  const filteredActions = excludeTypes.length
-    ? defaultActions.filter((action) => !excludeTypes.includes(action.type))
+  // Exclude mutation actions for read-only vaults
+  const readOnlyExcludeTypes = isReadOnly ? ['delete', 'move', 'favorite'] : []
+
+  const allExcludeTypes = [...excludeTypes, ...readOnlyExcludeTypes]
+
+  const filteredActions = allExcludeTypes.length
+    ? defaultActions.filter((action) => !allExcludeTypes.includes(action.type))
     : defaultActions
 
   return { actions: filteredActions }

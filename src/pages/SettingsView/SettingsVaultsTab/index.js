@@ -29,14 +29,19 @@ export const SettingsVaultsTab = () => {
               key=${vault.name}
               itemName="${vault.name}"
               itemDateText=${vaultCreatedFormat(vault.createdAt)}
-              onEditClick=${() =>
+              badge=${vault.accessLevel === 'read-only'
+                ? i18n._('Read-only')
+                : null}
+              onEditClick=${vault.accessLevel !== 'read-only' &&
+              (() =>
                 setModal(
                   html`<${ModifyVaultModalContent}
                     vaultId=${vault.id}
                     vaultName=${vault.name}
                   />`
-                )}
+                ))}
               onDeleteClick=${DELETE_VAULT_ENABLED &&
+              vault.accessLevel !== 'read-only' &&
               (() =>
                 setModal(
                   html`<${DeleteVaultModalContent}

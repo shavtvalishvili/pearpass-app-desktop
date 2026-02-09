@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import { html } from 'htm/react'
 import { colors } from 'pearpass-lib-ui-theme-provider'
+import { useVaultAccess } from 'pearpass-lib-vault'
 
 import { FolderIcon, KebabMenuIcon, PlusIcon } from '../../lib-react-components'
 import { EditFolderPopupContent } from '../EditFolderPopupContent'
@@ -36,6 +37,7 @@ export const SidebarFolder = ({
   hasMenu = true
 }) => {
   const [isNewPopupMenuOpen, setIsNewPopupMenuOpen] = useState(false)
+  const { canEdit } = useVaultAccess()
 
   return html`
     <${React.Fragment}>
@@ -58,6 +60,7 @@ export const SidebarFolder = ({
 
             ${!isRoot &&
             hasMenu &&
+            canEdit &&
             html` <${PopupMenu}
               side="right"
               align="right"
@@ -72,6 +75,7 @@ export const SidebarFolder = ({
         <//>
 
         ${isRoot &&
+        canEdit &&
         html`
           <${AddIconWrapper}
             data-testid="sidebarfolder-button-add"
