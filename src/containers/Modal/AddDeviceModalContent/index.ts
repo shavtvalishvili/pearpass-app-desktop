@@ -98,7 +98,9 @@ export const AddDeviceModalContent = () => {
   // Create invite when access level changes
   useEffect(() => {
     if (selectedAccessLevel === 'read-only') {
-      createReadOnlyInvite()
+      createReadOnlyInvite().then(() => {
+        addDevice('Read-only device', 'read-only')
+      })
     } else {
       createInvite()
     }
