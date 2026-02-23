@@ -127,6 +127,12 @@ declare module 'pearpass-lib-vault' {
       remainingAttempts: number
     }>
   }
+
+  export function useFavicon(params: { url: string }): {
+    faviconSrc: string | null
+    isLoading: boolean
+    hasError: boolean
+  }
 }
 
 declare module 'pear-apps-lib-ui-react-hooks' {
@@ -154,5 +160,7 @@ declare module 'pearpass-lib-constants' {
   export const AUTO_LOCK_TIMEOUT_OPTIONS: Record<string, { label: string, value: number }>
   export const AUTO_LOCK_ENABLED: boolean
   export const DELETE_VAULT_ENABLED: boolean
+  export const NATIVE_MESSAGING_BRIDGE_PEAR_LINK_PRODUCTION: string
+  export const NATIVE_MESSAGING_BRIDGE_PEAR_LINK_STAGING: string
 }
 

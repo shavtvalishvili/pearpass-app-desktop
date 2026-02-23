@@ -158,6 +158,7 @@ export const RecordListView = ({
         <${LeftActions}>
           ${isMultiSelect
             ? html`<${ButtonFilter}
+                  testId="multi-select-move-button"
                   isDisabled=${!isRecordsSelected}
                   startIcon=${MoveToIcon}
                   onClick=${handleMoveClick}
@@ -166,6 +167,7 @@ export const RecordListView = ({
                 <//>
 
                 <${ButtonFilter}
+                  testId="multi-select-delete-button"
                   isDisabled=${!isRecordsSelected}
                   startIcon=${DeleteIcon}
                   onClick=${handleDelete}
@@ -184,7 +186,10 @@ export const RecordListView = ({
                   menuItems=${sortActions}
                 />`}
               >
-                <${ButtonFilter} startIcon=${selectedSortAction.icon}>
+                <${ButtonFilter}
+                  testId="sort-dropdown-button"
+                  startIcon=${selectedSortAction.icon}
+                >
                   ${selectedSortAction.name}
                 <//>
               <//> `}
@@ -193,6 +198,7 @@ export const RecordListView = ({
         <${RightActions}>
           ${isMultiSelect
             ? html`<${ButtonFilter}
+                testId="multi-select-cancel-button"
                 onClick=${onClearSelection}
                 startIcon=${XIcon}
               >
@@ -200,6 +206,7 @@ export const RecordListView = ({
               <//>`
             : canEdit &&
               html`<${ButtonFilter}
+                testId="multi-select-button"
                 onClick=${() => setIsMultiSelect(true)}
                 startIcon=${MultiSelectionIcon}
               >
@@ -245,11 +252,7 @@ export const RecordListView = ({
 
               <${Record}
                 testId="recordList-record-container"
-                dataId=${record.type === 'note'
-                  ? 'note-list-item'
-                  : record.type === 'custom'
-                    ? 'custom-list-item'
-                    : undefined}
+                dataId=${`${record.type}-list-item`}
                 record=${record}
                 isSelected=${isSelected}
                 onSelect=${() => handleSelect(record, isSelected)}
