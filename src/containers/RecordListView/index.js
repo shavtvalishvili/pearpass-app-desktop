@@ -253,7 +253,6 @@ export const RecordListView = ({
                 dataId=${`${record.type}-list-item`}
                 record=${record}
                 isSelected=${isSelected}
-                otpCode=${record?.otpPublic?.currentCode ?? null}
                 onSelect=${() => handleSelect(record, isSelected)}
                 onClick=${() => handleRecordClick(record, isSelected)}
               />
