@@ -50,7 +50,7 @@ let vaultClient = null
 function getExecPath() {
   if (!app.isPackaged) return null
   if (isLinux && process.env.APPIMAGE) return process.env.APPIMAGE
-  if (isWindows) return process.execPath
+  if (isWindows) return true
   return path.join(process.resourcesPath, '..', '..')
 }
 
@@ -338,8 +338,8 @@ function createWindow() {
       : path.join(__dirname, '..', 'assets', 'darwin', 'icon.png')
   } else if (process.platform === 'win32') {
     iconPath = app.isPackaged
-      ? path.join(process.resourcesPath, 'assets', 'win32', 'icon.png')
-      : path.join(__dirname, '..', 'assets', 'win32', 'icon.png')
+      ? path.join(process.resourcesPath, 'assets', 'win32', 'icon.ico')
+      : path.join(__dirname, '..', 'assets', 'win32', 'icon.ico')
   } else {
     iconPath = app.isPackaged
       ? path.join(process.resourcesPath, 'assets', 'linux', 'icon.png')
@@ -447,8 +447,12 @@ function registerIPC() {
 
   ipcMain.handle('runtime:restart', async () => {
     logger.info('[MAIN]', 'runtime:restart')
-    app.relaunch()
-    app.exit(0)
+    if (isMac || isLinux) {
+      app.relaunch()
+      app.exit(0)
+    } else {
+      app.exit(0)
+    }
   })
 
   ipcMain.handle(

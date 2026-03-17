@@ -5,14 +5,14 @@
   "description": "PearPass password manager",
   "author": "PearPass",
   "main": "electron/main.cjs",
-  "upgrade": "pear://38pdt8rgbm89zz3q34awewegx3eig86d5quoirj46fpxadyn7miy",
+  "upgrade": "pear://4pttu7q83idz5xgaufuhs1dcx13cou6xbc9fdszcx5yo36qapbqy",
   "build": {
     "appId": "com.pears.pass",
     "icon": "assets/darwin/icon.png",
     "asar": false,
     "files": [
       "electron/**/*",
-    "dist/**/*",
+       "dist/**/*",
       "index.html",
       "index.js",
       "packages/**/*",
