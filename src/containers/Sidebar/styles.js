@@ -1,5 +1,6 @@
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 import styled from 'styled-components'
+
+import { isV2 } from '../../utils/designVersion'
 
 export const SidebarWrapper = styled.div`
   display: flex;
@@ -43,7 +44,7 @@ export const sideBarContent = styled.div`
   gap: 20px;
   min-height: 0;
   overflow: hidden;
-  ${DESIGN_VERSION === 2 &&
+  ${isV2() &&
   `
     overflow-y: auto;
     overflow-x: hidden;
@@ -68,14 +69,14 @@ export const SidebarNestedFoldersContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
-  ${DESIGN_VERSION === 2 ? 'flex-shrink: 0;' : 'flex: 1; min-height: 0;'}
+  ${isV2() ? 'flex-shrink: 0;' : 'flex: 1; min-height: 0;'}
 `
 
 export const FoldersWrapper = styled.div`
-  overflow-y: ${DESIGN_VERSION === 2 ? 'visible' : 'auto'};
+  overflow-y: ${isV2() ? 'visible' : 'auto'};
   display: flex;
   flex-direction: column;
-  ${DESIGN_VERSION === 2 ? 'flex-shrink: 0;' : 'min-height: 0;'}
+  ${isV2() ? 'flex-shrink: 0;' : 'min-height: 0;'}
 `
 
 export const SidebarAuthenticatorSection = styled.div`

@@ -1,5 +1,6 @@
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 import styled, { css } from 'styled-components'
+
+import { isV2 } from '../../utils/designVersion'
 
 export const PageContainer = styled.div`
   width: 100%;
@@ -32,7 +33,7 @@ export const CardVaultActions = styled.div`
   padding: 20px;
   z-index: 100;
 
-  ${DESIGN_VERSION === 2
+  ${isV2()
     ? css`
         margin-top: 20px;
       `

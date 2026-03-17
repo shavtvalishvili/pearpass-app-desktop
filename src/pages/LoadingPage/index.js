@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 
 import { html } from 'htm/react'
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 
 import { LoadingPageV2 } from './LoadingPageV2'
 import {
@@ -23,6 +22,7 @@ import {
 } from './styles'
 import { useTranslation } from '../../hooks/useTranslation'
 import { PearLogo } from '../../svgs/PearLogo'
+import { isV2 } from '../../utils/designVersion'
 
 /**
  * Loading page component that displays application loading progress
@@ -52,7 +52,7 @@ export const LoadingPage = ({ onLoadingComplete, duration = 3000 }) => {
     return () => clearInterval(interval)
   }, [duration, onLoadingComplete])
 
-  if (DESIGN_VERSION === 2) {
+  if (isV2()) {
     return html` <${LoadingPageV2} progress=${progress} /> `
   }
 

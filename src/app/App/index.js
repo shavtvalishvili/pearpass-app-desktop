@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react'
 
 import { useTheme } from '@tetherto/pearpass-lib-ui-kit'
 import { html } from 'htm/react'
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 
 import { useInactivity } from './hooks/useInactivity'
 import { useOnExtensionExit } from './hooks/useOnExtensionExit'
@@ -13,6 +12,7 @@ import { usePearUpdate } from '../../hooks/usePearUpdate'
 import { useSimulatedLoading } from '../../hooks/useSimulatedLoading'
 import { Routes } from '../Routes'
 import { ContentFrame, WindowBackground } from './styles'
+import { isV2 } from '../../utils/designVersion'
 
 export const App = () => {
   const { theme } = useTheme()
@@ -30,12 +30,11 @@ export const App = () => {
     setIsLoadingPageComplete(true)
   }, [])
 
-  const showLoadingPage =
-    DESIGN_VERSION === 2
-      ? isDataLoading || !isLoadingPageComplete
-      : !isSimulatedLoading && (isDataLoading || !isLoadingPageComplete)
+  const showLoadingPage = isV2()
+    ? isDataLoading || !isLoadingPageComplete
+    : !isSimulatedLoading && (isDataLoading || !isLoadingPageComplete)
 
-  if (DESIGN_VERSION === 2) {
+  if (isV2()) {
     return html`
       <${WindowBackground} $backgroundColor=${theme.colors.colorBackground}>
         <${TitleBar} />

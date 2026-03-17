@@ -1,5 +1,6 @@
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 import styled from 'styled-components'
+
+import { isV2 } from '../../../utils/designVersion'
 
 export const CategoriesContainer = styled.div`
   display: flex;
@@ -8,5 +9,5 @@ export const CategoriesContainer = styled.div`
   justify-content: space-between;
   row-gap: ${({ size }) => (size === 'default' ? '8px' : '10px')};
   column-gap: 12px;
-  ${DESIGN_VERSION === 2 && 'flex-shrink: 0;'}
+  ${isV2() && 'flex-shrink: 0;'}
 `

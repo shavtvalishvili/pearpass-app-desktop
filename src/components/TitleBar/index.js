@@ -1,7 +1,9 @@
 import { useTheme } from '@tetherto/pearpass-lib-ui-kit'
 import { html } from 'htm/react'
-import { DESIGN_VERSION } from 'pearpass-lib-constants'
 import styled from 'styled-components'
+
+import { PearpassLogo } from '../../svgs/PearpassLogo'
+import { isV2 } from '../../utils/designVersion'
 
 const BarInner = styled.div`
   position: relative;
@@ -22,10 +24,8 @@ const Brand = styled.div`
   user-select: none;
 `
 
-import { PearpassLogo } from '../../svgs/PearpassLogo'
-
 export const TitleBar = () => {
-  if (DESIGN_VERSION !== 2) return null
+  if (!isV2()) return null
   if (process.platform !== 'darwin') return null
 
   const { theme } = useTheme()
