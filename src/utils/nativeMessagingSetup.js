@@ -250,7 +250,7 @@ export const getNativeMessagingLocations = () => {
             home,
             'Library',
             'Application Support',
-            'Mozilla'
+            'Firefox'
           ),
           manifestPath: path.join(
             home,
@@ -314,10 +314,13 @@ export const getNativeMessagingLocations = () => {
     }
 
     case 'linux':
+      // Always write on Linux. Snap/Flatpak/AppImage installs use
+      // different paths, so checking the standard ones would wrongly
+      // report the browser as missing.
       browsers.push(
         {
           name: 'Google Chrome',
-          browserDir: path.join(home, '.config', 'google-chrome'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             '.config',
@@ -328,7 +331,7 @@ export const getNativeMessagingLocations = () => {
         },
         {
           name: 'Chromium',
-          browserDir: path.join(home, '.config', 'chromium'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             '.config',
@@ -339,7 +342,7 @@ export const getNativeMessagingLocations = () => {
         },
         {
           name: 'Microsoft Edge',
-          browserDir: path.join(home, '.config', 'microsoft-edge'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             '.config',
@@ -350,7 +353,7 @@ export const getNativeMessagingLocations = () => {
         },
         {
           name: 'Chromium (Snap)',
-          browserDir: path.join(home, 'snap', 'chromium', 'common', 'chromium'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             'snap',
@@ -363,12 +366,7 @@ export const getNativeMessagingLocations = () => {
         },
         {
           name: 'Brave',
-          browserDir: path.join(
-            home,
-            '.config',
-            'BraveSoftware',
-            'Brave-Browser'
-          ),
+          browserDir: null,
           manifestPath: path.join(
             home,
             '.config',
@@ -380,7 +378,7 @@ export const getNativeMessagingLocations = () => {
         },
         {
           name: 'Brave (Snap)',
-          browserDir: path.join(home, 'snap', 'brave', 'current'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             'snap',
@@ -396,7 +394,7 @@ export const getNativeMessagingLocations = () => {
         {
           name: 'Firefox',
           isFirefox: true,
-          browserDir: path.join(home, '.mozilla'),
+          browserDir: null,
           manifestPath: path.join(
             home,
             '.mozilla',
@@ -581,7 +579,7 @@ export const setupNativeMessaging = async ({
     const installedPaths = []
 
     for (const browser of browsers) {
-      // Skip browsers not installed on this system
+      // Null browserDir (Windows, all Linux) means always write.
       if (browser.browserDir) {
         try {
           await fs.access(browser.browserDir)
