@@ -6,7 +6,8 @@ import {
   getFingerprint,
   __getMemIdentity,
   setClientIdentityPublicKey,
-  confirmClientPairing
+  confirmClientPairing,
+  promotePendingPairing
 } from './appIdentity'
 import { LOCAL_STORAGE_KEYS } from '../../constants/localStorage'
 import { PAIRING_STATES } from '../../constants/pairing'
@@ -52,6 +53,7 @@ describe('appIdentity', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    localStorage.clear()
 
     mockClient = {
       encryptionGetStatus: jest.fn(),
@@ -285,10 +287,9 @@ describe('appIdentity', () => {
   })
 
   describe('confirmClientPairing', () => {
-    it('should update vault state and set localStorage', async () => {
+    it('passes when pending pubkey matches and does not mutate state', async () => {
       const clientPub = 'clientPub123'
 
-      // Mock existing pending pairing in vault
       mockClient.encryptionGet.mockResolvedValue(
         JSON.stringify({
           publicKey: clientPub,
@@ -298,6 +299,47 @@ describe('appIdentity', () => {
 
       await confirmClientPairing(mockClient, clientPub)
 
+      expect(mockClient.encryptionAdd).not.toHaveBeenCalled()
+      expect(
+        localStorage.getItem(LOCAL_STORAGE_KEYS.NM_CLIENT_PUBLIC_KEY)
+      ).toBeNull()
+    })
+
+    it('throws when pending pubkey does not match', async () => {
+      mockClient.encryptionGet.mockResolvedValue(
+        JSON.stringify({
+          publicKey: 'differentKey',
+          pairingState: PAIRING_STATES.PENDING
+        })
+      )
+
+      await expect(
+        confirmClientPairing(mockClient, 'clientPub123')
+      ).rejects.toThrow(/CLIENT_KEY_MISMATCH|does not match/)
+    })
+
+    it('throws when there is no pending pairing', async () => {
+      mockClient.encryptionGet.mockResolvedValue(null)
+
+      await expect(
+        confirmClientPairing(mockClient, 'clientPub123')
+      ).rejects.toThrow(/NO_PENDING_PAIRING|No pending pairing/)
+    })
+  })
+
+  describe('promotePendingPairing', () => {
+    it('promotes a PENDING pairing to CONFIRMED and writes localStorage', async () => {
+      const clientPub = 'clientPub123'
+
+      mockClient.encryptionGet.mockResolvedValue(
+        JSON.stringify({
+          publicKey: clientPub,
+          pairingState: PAIRING_STATES.PENDING
+        })
+      )
+
+      await promotePendingPairing(mockClient)
+
       expect(mockClient.encryptionAdd).toHaveBeenCalledWith(
         'nm.client.data',
         JSON.stringify({
@@ -305,10 +347,33 @@ describe('appIdentity', () => {
           pairingState: PAIRING_STATES.CONFIRMED
         })
       )
-
       expect(
         localStorage.getItem(LOCAL_STORAGE_KEYS.NM_CLIENT_PUBLIC_KEY)
       ).toBe(clientPub)
+    })
+
+    it('is a no-op when there is no pending pairing', async () => {
+      mockClient.encryptionGet.mockResolvedValue(null)
+
+      await promotePendingPairing(mockClient)
+
+      expect(mockClient.encryptionAdd).not.toHaveBeenCalled()
+      expect(
+        localStorage.getItem(LOCAL_STORAGE_KEYS.NM_CLIENT_PUBLIC_KEY)
+      ).toBeNull()
+    })
+
+    it('is a no-op when the pairing is already CONFIRMED', async () => {
+      mockClient.encryptionGet.mockResolvedValue(
+        JSON.stringify({
+          publicKey: 'clientPub123',
+          pairingState: PAIRING_STATES.CONFIRMED
+        })
+      )
+
+      await promotePendingPairing(mockClient)
+
+      expect(mockClient.encryptionAdd).not.toHaveBeenCalled()
     })
   })
 })

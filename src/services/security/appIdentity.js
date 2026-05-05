@@ -482,7 +482,9 @@ export const getClientPairingState = async (client) => {
 }
 
 /**
- * Confirm pairing after extension successfully encrypted its keypair.
+ * Verify that the extension's pending pairing matches the supplied pubkey.
+ * Does not change state. The pairing is promoted to CONFIRMED only after the
+ * extension proves it can log in to the vault (see promotePendingPairing).
  * @param {import('@tetherto/pearpass-lib-vault-core').PearpassVaultClient} client
  * @param {string} clientEd25519PublicKeyB64
  */
@@ -509,13 +511,28 @@ export const confirmClientPairing = async (
       )
     )
   }
+}
 
-  // Now that pairing is confirmed do store client public key in localStorage
-  // Accessible even when locked for checkExtensionPairingStatus
-  localStorage.setItem(
-    LOCAL_STORAGE_KEYS.NM_CLIENT_PUBLIC_KEY,
-    clientEd25519PublicKeyB64
-  )
+/**
+ * Promote a pending extension pairing to CONFIRMED. Idempotent: a no-op when
+ * there is no pending pairing or it is already confirmed.
+ *
+ * Must only be called once the master password has been validated against the
+ * vault (e.g. immediately after a successful initWithPassword). This is what
+ * makes pairing transactional: a wrong-password attempt never reaches this
+ * function, so orphan PENDING entries are overwritten by the next pairing
+ * attempt and never appear as confirmed state.
+ *
+ * @param {import('@tetherto/pearpass-lib-vault-core').PearpassVaultClient} client
+ */
+export const promotePendingPairing = async (client) => {
+  const data = await getClientData(client)
+  if (!data?.publicKey) return
+  if (data.pairingState === PAIRING_STATES.CONFIRMED) return
+
+  // Cache pubkey in localStorage so checkExtensionPairingStatus can answer
+  // even while the desktop vault is locked.
+  localStorage.setItem(LOCAL_STORAGE_KEYS.NM_CLIENT_PUBLIC_KEY, data.publicKey)
 
   await client.encryptionAdd(
     ENC_KEY_CLIENT_DATA,

@@ -2,6 +2,7 @@ import { stringToBuffer } from '@tetherto/pearpass-lib-vault/src/utils/buffer'
 
 import { HANDLER_EVENTS } from '../../constants/services'
 import { logger } from '../../utils/logger'
+import { promotePendingPairing } from '../security/appIdentity'
 
 /**
  * Handles encryption-related IPC operations
@@ -98,6 +99,19 @@ export class EncryptionHandlers {
       stringToBuffer(params.password)
     )
     logger.info('ENCRYPTION-HANDLER', `Initialized with password`)
+
+    // The successful initWithPassword above proves the user knows the master
+    // password. Only now do we promote any pending extension pairing to
+    // CONFIRMED so a wrong-password attempt cannot leave a stuck paired state.
+    try {
+      await promotePendingPairing(this.client)
+    } catch (err) {
+      logger.error(
+        'ENCRYPTION-HANDLER',
+        `Failed to promote pending pairing: ${err?.message || err}`
+      )
+    }
+
     return result
   }
 }
