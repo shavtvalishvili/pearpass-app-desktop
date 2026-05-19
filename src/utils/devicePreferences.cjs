@@ -13,7 +13,8 @@ const path = require('path')
 const FILE_NAME = 'device-preferences.json'
 
 const DEFAULTS = {
-  loggingEnabled: false
+  loggingEnabled: false,
+  biometricRequirePasswordOnRestart: true
 }
 
 function read(storageDir) {
@@ -21,7 +22,10 @@ function read(storageDir) {
     const raw = fs.readFileSync(path.join(storageDir, FILE_NAME), 'utf8')
     const parsed = JSON.parse(raw)
     return {
-      loggingEnabled: parsed.loggingEnabled === true
+      loggingEnabled: parsed.loggingEnabled === true,
+      // Default to true: safer to require master password on a fresh launch.
+      biometricRequirePasswordOnRestart:
+        parsed.biometricRequirePasswordOnRestart !== false
     }
   } catch {
     return { ...DEFAULTS }
@@ -32,7 +36,9 @@ function write(storageDir, partial) {
   fs.mkdirSync(storageDir, { recursive: true })
   const merged = { ...read(storageDir), ...partial }
   const out = {
-    loggingEnabled: !!merged.loggingEnabled
+    loggingEnabled: !!merged.loggingEnabled,
+    biometricRequirePasswordOnRestart:
+      merged.biometricRequirePasswordOnRestart !== false
   }
   fs.writeFileSync(
     path.join(storageDir, FILE_NAME),

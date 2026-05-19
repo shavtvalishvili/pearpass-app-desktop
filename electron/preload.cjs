@@ -51,5 +51,16 @@ window.electronAPI = {
   openLogsFolder: () => ipcRenderer.invoke('vault:openLogsFolder'),
   isLoggingEnabled: () => ipcRenderer.invoke('vault:isLoggingEnabled'),
   setLogging: (enabled) =>
-    ipcRenderer.invoke('vault:setLogging', { enabled: !!enabled })
+    ipcRenderer.invoke('vault:setLogging', { enabled: !!enabled }),
+  biometric: {
+    available: () => ipcRenderer.invoke('biometric:available'),
+    hasEnrollment: () => ipcRenderer.invoke('biometric:hasEnrollment'),
+    getPolicy: () => ipcRenderer.invoke('biometric:getPolicy'),
+    setRequirePasswordOnRestart: (enabled) =>
+      ipcRenderer.invoke('biometric:setRequirePasswordOnRestart', !!enabled),
+    enroll: (passwordBase64) =>
+      ipcRenderer.invoke('biometric:enroll', { passwordBase64 }),
+    unenroll: () => ipcRenderer.invoke('biometric:unenroll'),
+    unlock: () => ipcRenderer.invoke('biometric:unlock')
+  }
 }

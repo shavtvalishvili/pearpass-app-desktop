@@ -1,0 +1,28 @@
+{
+  "name": "@pearpass/desktop-native",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PearPass desktop biometric unlock native module.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
+  "napi": {
+    "binaryName": "pearpass-biometric",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin"
+    ]
+  },
+  "scripts": {
+    "build": "napi build --platform --release --js index.js --dts index.d.ts",
+    "build:debug": "napi build --platform --js index.js --dts index.d.ts",
+    "universal": "napi universal"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.4"
+  }
+}
