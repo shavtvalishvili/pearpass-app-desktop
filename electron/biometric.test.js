@@ -26,9 +26,7 @@ const mockNative = {
   __notBuilt: false
 }
 
-// virtual: true so the test does not require @pearpass/desktop-native to be
-// resolvable on disk - matters when the native module has not been built or
-// the file: dep has not been npm-installed yet.
+// virtual: true so the test runs when the native module has not been built.
 jest.mock('@pearpass/desktop-native', () => mockNative, { virtual: true })
 
 const biometric = require('./biometric.cjs')

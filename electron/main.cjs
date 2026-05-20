@@ -60,12 +60,6 @@ const { logger, loggingForced, enableWorkletFileLogging } = setupLogging({
 // it at runtime via the vault:setLogging IPC.
 let loggingActive = false
 
-// Set to true once the vault has been unlocked in this main-process session
-// via a password-bearing path (initWithPassword or initWithCredentials). If
-// biometricRequirePasswordOnRestart is on, biometric:unlock refuses until
-// this flag flips. Reset implicitly by process restart.
-let biometricSessionUnlocked = false
-
 /**
  * Emit a structured startup marker to stderr.
  *
@@ -655,10 +649,18 @@ function registerIPC() {
     const deserialized = rawArgs.map(fromSerializableArg)
     try {
       const result = await fn.apply(vaultClient, deserialized)
-      // Any successful unlock-bearing call lifts the biometric gate for
-      // the rest of this process session.
-      if (method === 'initWithPassword' || method === 'initWithCredentials') {
-        biometricSessionUnlocked = true
+      // Master-password change invalidates the wrapped blob (it bakes in
+      // the old hashedPassword); drop enrollment so the user re-enables.
+      if (method === 'updateMasterPassword') {
+        try {
+          await biometric.unenroll({ storageDir: getStorageDir() })
+        } catch (err) {
+          logger.warn(
+            'MAIN',
+            'biometric unenroll after master password change failed:',
+            err && err.message ? err.message : err
+          )
+        }
       }
       return { ok: true, data: toSerializableArg(result) }
     } catch (err) {
@@ -676,29 +678,6 @@ function registerIPC() {
     biometric.hasEnrollment(getStorageDir())
   )
 
-  ipcMain.handle('biometric:getPolicy', async () => {
-    const prefs = devicePreferences.read(getStorageDir())
-    return {
-      requirePasswordOnRestart: prefs.biometricRequirePasswordOnRestart !== false,
-      sessionUnlocked: biometricSessionUnlocked
-    }
-  })
-
-  ipcMain.handle('biometric:setRequirePasswordOnRestart', async (_event, enabled) => {
-    try {
-      devicePreferences.write(getStorageDir(), {
-        biometricRequirePasswordOnRestart: !!enabled
-      })
-      return { ok: true }
-    } catch (err) {
-      return {
-        ok: false,
-        kind: 'OsError',
-        message: err.message || String(err)
-      }
-    }
-  })
-
   ipcMain.handle('biometric:enroll', async (_event, payload) => {
     if (!payload || typeof payload.passwordBase64 !== 'string') {
       return { ok: false, kind: 'OsError', message: 'missing passwordBase64' }
@@ -715,27 +694,9 @@ function registerIPC() {
     biometric.unenroll({ storageDir: getStorageDir() })
   )
 
-  ipcMain.handle('biometric:unlock', async () => {
-    const prefs = devicePreferences.read(getStorageDir())
-    if (
-      prefs.biometricRequirePasswordOnRestart !== false &&
-      !biometricSessionUnlocked
-    ) {
-      return {
-        ok: false,
-        kind: 'PolicyRestart',
-        message: 'master password required after restart'
-      }
-    }
-    const result = await biometric.unlock({
-      vaultClient,
-      storageDir: getStorageDir()
-    })
-    if (result.ok) {
-      biometricSessionUnlocked = true
-    }
-    return result
-  })
+  ipcMain.handle('biometric:unlock', async () =>
+    biometric.unlock({ vaultClient, storageDir: getStorageDir() })
+  )
 
   ipcMain.handle('clipboard:clearAfter', async (_event, { text, delayMs }) =>
     scheduleClipboardCleanup({

@@ -1,7 +1,6 @@
-// NAPI surface for the biometric core. The Electron main process imports
-// this module via `require('@pearpass/desktop-native')`. All entry points
-// dispatch work onto the libuv thread pool via napi's AsyncTask so the
-// Node event loop is never blocked while a biometric prompt is on screen.
+// NAPI surface for the biometric core. Entry points dispatch onto the libuv
+// thread pool via AsyncTask so the OS biometric prompt cannot block the
+// Node event loop.
 
 #![deny(clippy::all)]
 
@@ -40,8 +39,8 @@ impl From<core::Availability> for Availability {
 }
 
 fn map_err(err: core::BiometricError) -> Error {
-    // Surface the kind as a `KIND:message` string so the JS layer can
-    // pattern-match without parsing free-form messages.
+    // `KIND:message` format lets the JS layer pattern-match without
+    // parsing free-form messages.
     let kind = match err.kind() {
         core::ErrorKind::Cancelled => "Cancelled",
         core::ErrorKind::LockedOut => "LockedOut",
@@ -51,8 +50,6 @@ fn map_err(err: core::BiometricError) -> Error {
     };
     Error::new(Status::GenericFailure, format!("{kind}:{err}"))
 }
-
-// -------- AsyncTask wrappers ----------------------------------------------
 
 pub struct AvailableTask;
 impl Task for AvailableTask {
@@ -94,7 +91,7 @@ impl Task for EnrollTask {
         Ok(Buffer::from(output))
     }
     fn finally(&mut self, _env: Env) -> NapiResult<()> {
-        // Best-effort zeroize of plaintext credentials in our temp buffer.
+        // Zeroize plaintext credentials in our temp buffer.
         for b in self.credentials.iter_mut() {
             *b = 0;
         }
@@ -130,8 +127,6 @@ impl Task for UnlockTask {
         Ok(Buffer::from(output))
     }
 }
-
-// -------- exported functions ----------------------------------------------
 
 #[napi]
 pub fn available() -> AsyncTask<AvailableTask> {

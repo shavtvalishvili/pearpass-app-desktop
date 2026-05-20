@@ -1,15 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /**
- * Main-process wrapper around @pearpass/desktop-native.
- *
- * Owns:
- *   - the wrapped-credentials blob on disk (storageDir/biometric/<userId>.bin)
- *   - the orchestration around vaultClient for enroll and unlock flows
- *   - error classification (kind: Cancelled/LockedOut/Invalidated/...)
- *
- * The renderer never sees the wrapped blob, the decrypted credentials, or
- * the master password beyond what already crosses the existing
- * vault:invoke channel.
+ * Main-process wrapper around @pearpass/desktop-native. Owns the wrapped
+ * credentials blob on disk and never leaks it to the renderer.
  */
 
 const fs = require('fs')
@@ -23,8 +15,7 @@ try {
   nativeLoadError = err
 }
 
-// Single per-app-user enrollment. If we ever support multi-vault biometric
-// enrollment, replace this with a per-vault id.
+// Single per-app-user enrollment; switch to per-vault if needed later.
 const USER_ID = 'default'
 
 const BIOMETRIC_DIR = 'biometric'
@@ -123,8 +114,7 @@ async function enroll({ vaultClient, storageDir, passwordBase64 }) {
     return { ok: false, kind: 'OsError', message: 'vault client not ready' }
   }
 
-  // 1. Verify the password by re-deriving and comparing. initWithPassword
-  //    against an already-initialized vault is a pure verification path.
+  // initWithPassword on an already-initialized vault is a pure verify path.
   try {
     await vaultClient.initWithPassword({ passwordBase64 })
   } catch (err) {
@@ -135,7 +125,6 @@ async function enroll({ vaultClient, storageDir, passwordBase64 }) {
     }
   }
 
-  // 2. Pull the stored {ciphertext, nonce, salt} and re-derive hashedPassword.
   let enc
   try {
     enc = await vaultClient.encryptionGet('masterPassword')
@@ -168,7 +157,6 @@ async function enroll({ vaultClient, storageDir, passwordBase64 }) {
     }
   }
 
-  // 3. Wrap the credentials with the SEP key.
   const credentials = Buffer.from(
     JSON.stringify({
       ciphertext: enc.ciphertext,
@@ -186,11 +174,10 @@ async function enroll({ vaultClient, storageDir, passwordBase64 }) {
     credentials.fill(0)
   }
 
-  // 4. Persist the wrapped blob next to other vault data.
   try {
     writeBlob(storageDir, wrapped)
   } catch (err) {
-    // Roll back the SEP enrollment so we don't leave a dangling key.
+    // Roll back native enrollment so we don't leave a dangling key.
     try {
       await native.unenroll(USER_ID)
     } catch {}
@@ -229,8 +216,8 @@ async function unlock({ vaultClient, storageDir }) {
   } catch (err) {
     const cls = classifyError(err)
     if (cls.kind === 'Invalidated') {
-      // SEP key gone (biometric re-enrolled, user removed it, etc.) - wipe
-      // the orphan blob so the next attempt cleanly reports "needs enroll".
+      // Native key gone (biometric re-enrolled / user removed it); wipe
+      // the orphan blob so the next call cleanly reports "needs enroll".
       try { deleteBlob(storageDir) } catch {}
     }
     return { ok: false, ...cls }
@@ -270,7 +257,6 @@ async function unlock({ vaultClient, storageDir }) {
 
 async function unenroll({ storageDir }) {
   if (!isAvailableModule()) {
-    // Still wipe the blob if it exists.
     try { deleteBlob(storageDir) } catch {}
     return { ok: true }
   }

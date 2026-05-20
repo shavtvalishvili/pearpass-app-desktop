@@ -1,5 +1,4 @@
-// Linux implementation - stub for now. Filled in during the Linux step.
-// Until then we report Unsupported and refuse enrollment / unlock.
+// Linux implementation - stub; returns Unsupported until the Linux step.
 
 use crate::{Availability, BiometricError};
 

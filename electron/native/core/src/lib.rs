@@ -1,13 +1,8 @@
 // PearPass biometric unlock - platform-agnostic API.
 //
-// The native module wraps an arbitrary credentials buffer with a hardware-
-// gated key. The wrapped blob is returned to the caller, which stores it.
-// On unlock, the caller passes the wrapped blob back; the native module
-// triggers the OS biometric prompt and, on success, returns the original
-// credentials buffer.
-//
-// The wrap key is managed entirely by the native module via the OS
-// keychain. The caller never sees the wrap key.
+// Wraps a credentials buffer with a hardware-gated key (managed by the
+// platform impl via the OS keychain). Callers store the wrapped blob and
+// pass it back on unlock; the OS biometric prompt fires inside unlock().
 
 pub mod errors;
 

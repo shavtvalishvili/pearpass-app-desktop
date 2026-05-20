@@ -55,9 +55,6 @@ window.electronAPI = {
   biometric: {
     available: () => ipcRenderer.invoke('biometric:available'),
     hasEnrollment: () => ipcRenderer.invoke('biometric:hasEnrollment'),
-    getPolicy: () => ipcRenderer.invoke('biometric:getPolicy'),
-    setRequirePasswordOnRestart: (enabled) =>
-      ipcRenderer.invoke('biometric:setRequirePasswordOnRestart', !!enabled),
     enroll: (passwordBase64) =>
       ipcRenderer.invoke('biometric:enroll', { passwordBase64 }),
     unenroll: () => ipcRenderer.invoke('biometric:unenroll'),

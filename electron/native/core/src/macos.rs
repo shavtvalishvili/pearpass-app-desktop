@@ -1,21 +1,11 @@
 // macOS biometric unlock backed by the Secure Enclave.
 //
-// Architecture
-// ------------
-//   - On enrollment we create a P-256 EC key pair inside the Secure
-//     Enclave (kSecAttrTokenIDSecureEnclave). The private key is bound
-//     to the current biometric set via kSecAccessControlBiometryCurrentSet
-//     and kSecAttrAccessibleWhenUnlockedThisDeviceOnly. The key never
-//     leaves the SEP; it is invalidated automatically if the user adds
-//     or removes a fingerprint.
-//   - The credentials buffer is encrypted with the public key using
-//     ECIES (kSecKeyAlgorithmECIESEncryptionCofactorVariableIVX963-
-//     SHA256AESGCM). The wrapped blob is returned to the caller.
-//   - On unlock the caller passes the wrapped blob back; SecKeyCreate-
-//     DecryptedData triggers the Touch ID prompt and the SEP releases
-//     the operation only after a successful biometric. We never see
-//     the private key.
-//   - Keys are looked up by application tag "com.pearpass.biometric.<user_id>".
+// Enroll creates a P-256 key inside the SEP bound to the current biometric
+// set (biometryCurrentSet), encrypts the credentials buffer via ECIES, and
+// returns the ciphertext. Unlock decrypts via the SEP, which triggers
+// Touch ID and releases the key only on success. Keys are tagged
+// "com.pearpass.biometric.<user_id>"; biometric re-enrollment invalidates
+// the SEP key automatically.
 
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
@@ -38,10 +28,8 @@ use core_foundation_sys::error::CFErrorRef;
 
 use crate::{Availability, BiometricError};
 
-// ---- C types & extern declarations -----------------------------------------
-//
-// We declare these locally instead of relying on security-framework-sys
-// re-exports so we are robust against minor version skew.
+// FFI declared locally instead of via security-framework-sys to avoid
+// version-skew breakage.
 
 type SecKeyRef = *const c_void;
 type SecAccessControlRef = *const c_void;
@@ -67,7 +55,6 @@ const LA_PASSCODE_NOT_SET: i64 = -5;
 
 #[link(name = "Security", kind = "framework")]
 extern "C" {
-    // Security.framework
     static kSecClass: CFStringRef;
     static kSecClassKey: CFStringRef;
     static kSecAttrKeyType: CFStringRef;
@@ -111,8 +98,6 @@ extern "C" {
     fn SecItemDelete(query: CFTypeRef) -> OSStatus;
 }
 
-// ---- helpers ---------------------------------------------------------------
-
 const KEY_LABEL_PREFIX: &str = "com.pearpass.biometric";
 
 fn key_tag(user_id: &str) -> Vec<u8> {
@@ -154,8 +139,7 @@ unsafe fn cf_error_to_biometric(err: CFErrorRef) -> BiometricError {
     let domain = cferr.domain().to_string();
     let desc = cferr.description().to_string();
 
-    // LocalAuthentication errors propagate through Security framework calls
-    // that triggered a biometric prompt.
+    // LocalAuthentication errors propagate through Security framework calls.
     if domain.contains("LAError") || domain.contains("LocalAuthentication") {
         return match code {
             LA_USER_CANCEL | LA_APP_CANCEL => BiometricError::Cancelled,
@@ -269,15 +253,9 @@ unsafe fn create_sep_key(user_id: &str) -> Result<SecKeyRef, BiometricError> {
     Ok(key)
 }
 
-// ---- public API ------------------------------------------------------------
-
 pub fn available() -> Result<Availability, BiometricError> {
-    // Apple Silicon + T2 Macs always have a Secure Enclave. On older Intel
-    // Macs without T2, SecKeyCreateRandomKey with kSecAttrTokenIDSecureEnclave
-    // fails at enroll time; we surface that as NoHardware via the enroll
-    // error mapping. A finer-grained pre-check would require linking
-    // LocalAuthentication and calling LAContext.canEvaluatePolicy, which we
-    // defer.
+    // Apple Silicon and T2 Macs have SEP; older Intel without T2 fails at
+    // enroll time and surfaces the failure via the enroll error mapping.
     Ok(Availability::Available)
 }
 
@@ -342,8 +320,7 @@ pub fn unlock(user_id: &str, wrapped: &[u8]) -> Result<Vec<u8>, BiometricError> 
 
         let ciphertext = CFData::from_buffer(wrapped);
         let mut err: CFErrorRef = ptr::null_mut();
-        // This call triggers the Touch ID prompt synchronously and returns
-        // the plaintext only after the SEP releases the decryption.
+        // Triggers Touch ID; SEP releases the decryption only on success.
         let plaintext_ref = SecKeyCreateDecryptedData(
             key,
             kSecKeyAlgorithmECIESEncryptionCofactorVariableIVX963SHA256AESGCM,

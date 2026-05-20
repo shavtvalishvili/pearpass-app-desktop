@@ -1,9 +1,7 @@
 /* eslint-disable */
-// Placeholder loader. `npm --workspace @pearpass/desktop-native run build`
-// (via napi-rs) overwrites this file with one that selects the correct
-// per-platform .node binary. Until the native module is built, every
-// exported function throws so the main process can fall back to a
-// "biometric unavailable" state cleanly.
+// Loader for the per-platform .node binary. napi-rs overwrites this on
+// build; without a binary we fall back to a stub so the main process can
+// run with biometrics reported as Unsupported.
 
 const path = require('path')
 const fs = require('fs')

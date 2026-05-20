@@ -1,5 +1,4 @@
-// Windows implementation - stub for now. Filled in during the Windows step.
-// Until then we report Unsupported and refuse enrollment / unlock.
+// Windows implementation - stub; returns Unsupported until the Windows step.
 
 use crate::{Availability, BiometricError};
 
